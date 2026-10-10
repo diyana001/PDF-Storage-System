@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useMockAuth } from '@/lib/mock-auth'
+import { SignInTypeSwitch } from '@/components/auth/sign-in-type-switch'
 
 export function AuthForm({ mode, redirectTo = '/' }: { mode: 'login' | 'signup'; redirectTo?: string }) {
   const router = useRouter()
@@ -68,6 +69,7 @@ export function AuthForm({ mode, redirectTo = '/' }: { mode: 'login' | 'signup';
 
   return (
     <div className="flex flex-col gap-8">
+      {!isSignup ? <SignInTypeSwitch active="user" /> : null}
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold tracking-tight">{isSignup ? 'Create your account' : 'Welcome back'}</h1>
         <p className="text-muted-foreground">

@@ -12,7 +12,7 @@ export function SiteFooter() {
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href="/browse" className="hover:text-foreground">Browse</Link>
           <Link href="/library" className="hover:text-foreground">My Library</Link>
-          <Link href="/admin" className="hover:text-foreground">Admin</Link>
+          <Link href="/admin/login" className="hover:text-foreground">Admin</Link>
           <span>{'© 2026 PDFHub'}</span>
         </nav>
       </div>

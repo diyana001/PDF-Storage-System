@@ -4,7 +4,16 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 
 const ACCOUNTS_KEY = 'pdfhub-mock-accounts-v1'
 const SESSION_KEY = 'pdfhub-mock-session-v1'
+const ADMIN_SESSION_KEY = 'pdfhub-mock-admin-session-v1'
+const ADMIN_TAB_SESSION_KEY = 'pdfhub-mock-admin-tab-session-v1'
 const GOOGLE_DEMO_EMAIL = 'taylor.morgan@gmail.com'
+export const DEMO_ADMIN = {
+  name: 'Alex Morgan',
+  email: 'admin@pdfhub.io',
+  password: 'Admin@1234',
+  initials: 'AM',
+  role: 'Administrator',
+}
 
 export type MockUser = {
   id: string
@@ -24,12 +33,15 @@ type MockAccount = {
 
 type MockAuthValue = {
   user: MockUser | null
+  isAdmin: boolean
   isReady: boolean
   signUp: (name: string, email: string, password: string) => Promise<string | null>
   signIn: (email: string, password: string) => Promise<string | null>
   signInWithGoogle: () => void
   signOut: () => void
   updateProfile: (profile: Pick<MockUser, 'name' | 'organization'>) => void
+  signInAdmin: (email: string, password: string, remember: boolean) => string | null
+  signOutAdmin: () => void
 }
 
 const MockAuthContext = createContext<MockAuthValue | null>(null)
@@ -80,12 +92,14 @@ function saveAccounts(accounts: MockAccount[]) {
 
 export function MockAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<MockUser | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
     const activeId = localStorage.getItem(SESSION_KEY)
     const activeAccount = readAccounts().find((account) => account.user.id === activeId)
     setUser(activeAccount?.user ?? null)
+    setIsAdmin(localStorage.getItem(ADMIN_SESSION_KEY) === 'active' || sessionStorage.getItem(ADMIN_TAB_SESSION_KEY) === 'active')
     setIsReady(true)
   }, [])
 
@@ -149,8 +163,26 @@ export function MockAuthProvider({ children }: { children: ReactNode }) {
     setUser(updatedUser)
   }
 
+  function signInAdmin(email: string, password: string, remember: boolean) {
+    if (email.trim().toLowerCase() !== DEMO_ADMIN.email || password !== DEMO_ADMIN.password) {
+      return 'The email or password is incorrect. Use the demo account to preview the admin portal.'
+    }
+    localStorage.removeItem(ADMIN_SESSION_KEY)
+    sessionStorage.removeItem(ADMIN_TAB_SESSION_KEY)
+    if (remember) localStorage.setItem(ADMIN_SESSION_KEY, 'active')
+    else sessionStorage.setItem(ADMIN_TAB_SESSION_KEY, 'active')
+    setIsAdmin(true)
+    return null
+  }
+
+  function signOutAdmin() {
+    localStorage.removeItem(ADMIN_SESSION_KEY)
+    sessionStorage.removeItem(ADMIN_TAB_SESSION_KEY)
+    setIsAdmin(false)
+  }
+
   return (
-    <MockAuthContext.Provider value={{ user, isReady, signUp, signIn, signInWithGoogle, signOut, updateProfile }}>
+    <MockAuthContext.Provider value={{ user, isAdmin, isReady, signUp, signIn, signInWithGoogle, signOut, updateProfile, signInAdmin, signOutAdmin }}>
       {children}
     </MockAuthContext.Provider>
   )

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Bookmark, Download, LayoutDashboard, LogOut, Search, Settings } from 'lucide-react'
+import { Bookmark, Download, LogOut, Search, Settings } from 'lucide-react'
 import { useMockAuth } from '@/lib/mock-auth'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -90,10 +90,6 @@ export function SiteHeader() {
             </DropdownMenuItem>
             <DropdownMenuItem render={<Link href="/library?tab=profile" />}>
               <Settings aria-hidden="true" /> Profile Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link href="/admin" />}>
-              <LayoutDashboard aria-hidden="true" /> Admin Portal
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onSignOut}>
               <LogOut aria-hidden="true" /> Sign out

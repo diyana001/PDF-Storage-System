@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Bell, LogOut, Menu, Search, UserRound } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
@@ -17,9 +18,17 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { adminUser } from '@/lib/data'
+import { useMockAuth } from '@/lib/mock-auth'
 
 export function AdminHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const router = useRouter()
+  const { signOutAdmin } = useMockAuth()
+
+  function onSignOut() {
+    signOutAdmin()
+    router.replace('/admin/login')
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-card/90 px-4 backdrop-blur sm:px-6 lg:px-8">
@@ -79,7 +88,7 @@ export function AdminHeader() {
             <DropdownMenuItem render={<Link href="/admin/settings" />}>
               <UserRound aria-hidden="true" /> Account settings
             </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/login" />}>
+            <DropdownMenuItem onClick={onSignOut}>
               <LogOut aria-hidden="true" /> Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
