@@ -7,11 +7,64 @@ import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useMockAuth } from '@/lib/mock-auth'
 
-export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
+export function AuthForm({ mode, redirectTo = '/' }: { mode: 'login' | 'signup'; redirectTo?: string }) {
   const router = useRouter()
+  const { signUp, signIn, signInWithGoogle } = useMockAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const isSignup = mode === 'signup'
+  const safeRedirect = redirectTo.startsWith('/') && !redirectTo.startsWith('//') && !redirectTo.includes('\\') ? redirectTo : '/'
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError('')
+    setNotice('')
+
+    const form = new FormData(event.currentTarget)
+    const email = String(form.get('email') ?? '').trim()
+    const password = String(form.get('password') ?? '')
+
+    setPending(true)
+    try {
+      let authError: string | null
+      if (isSignup) {
+        const name = String(form.get('name') ?? '').trim()
+        authError = await signUp(name, email, password)
+      } else {
+        authError = await signIn(email, password)
+      }
+
+      if (authError) {
+        setError(authError)
+        return
+      }
+      router.replace(safeRedirect)
+      router.refresh()
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'We could not complete that request. Please try again.')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError('')
+    setNotice('')
+    setPending(true)
+    try {
+      signInWithGoogle()
+      router.replace(safeRedirect)
+      router.refresh()
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Google demo sign-in failed. Please try again.')
+    } finally {
+      setPending(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -21,12 +74,17 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
           {isSignup ? 'Start downloading and saving documents in seconds.' : 'Sign in to access your library.'}
         </p>
       </div>
+      <Button type="button" variant="outline" className="h-11" onClick={handleGoogleSignIn} disabled={pending}>
+        {isSignup ? 'Sign up with Google' : 'Continue with Google'}
+      </Button>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground" aria-hidden="true">
+        <span className="h-px flex-1 bg-border" />
+        <span>OR USE EMAIL</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
       <form
         className="flex flex-col gap-5"
-        onSubmit={(e) => {
-          e.preventDefault()
-          router.push('/library')
-        }}
+        onSubmit={handleSubmit}
       >
         {isSignup ? (
           <div className="flex flex-col gap-2">
@@ -39,14 +97,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
           <Input id="email" name="email" type="email" autoComplete="email" placeholder="you@company.com" required className="h-11" />
         </div>
         <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-            {!isSignup ? (
-              <Link href="/login" className="text-sm font-medium text-primary hover:underline">
-                Forgot password?
-              </Link>
-            ) : null}
-          </div>
+          <Label htmlFor="password">Password</Label>
           <div className="relative">
             <Input
               id="password"
@@ -66,10 +117,12 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
               {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
-          {isSignup ? <p className="text-xs text-muted-foreground">At least 8 characters.</p> : null}
+          {isSignup ? <p className="text-xs text-muted-foreground">Use at least 8 characters.</p> : null}
         </div>
-        <Button type="submit" className="h-11 text-base">
-          {isSignup ? 'Create account' : 'Sign in'}
+        {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
+        {notice ? <p role="status" className="text-sm text-success">{notice}</p> : null}
+        <Button type="submit" className="h-11 text-base" disabled={pending}>
+          {pending ? 'Please wait…' : isSignup ? 'Create account' : 'Sign in'}
         </Button>
       </form>
       <p className="text-center text-sm text-muted-foreground">

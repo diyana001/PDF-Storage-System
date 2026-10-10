@@ -1,14 +1,18 @@
+'use client'
+
 import Form from 'next/form'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { DocThumbnail } from '@/components/doc-thumbnail'
-import { currentUser, documents } from '@/lib/data'
+import { documents } from '@/lib/data'
+import { useMockAuth } from '@/lib/mock-auth'
 
 const popular = ['Annual report', 'Lecture notes', 'Privacy policy', 'Onboarding']
 
 export function Hero() {
+  const { user, isReady } = useMockAuth()
   const stack = [documents[2], documents[0], documents[5]]
-  const firstName = currentUser.name.split(' ')[0]
+  const firstName = user?.name.split(' ')[0]
 
   return (
     <section className="relative overflow-hidden rounded-2xl bg-primary text-primary-foreground">
@@ -24,7 +28,9 @@ export function Hero() {
       />
       <div className="relative grid items-center gap-10 p-6 sm:p-10 lg:grid-cols-[1.3fr_1fr] lg:p-12">
         <div className="flex flex-col gap-6">
-          <p className="text-sm font-medium text-primary-foreground/80">Welcome back, {firstName}</p>
+          <p className="text-sm font-medium text-primary-foreground/80">
+            {!isReady ? 'Explore PDFHub' : user ? `Welcome back, ${firstName}` : 'Welcome to PDFHub'}
+          </p>
           <h1 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl lg:text-5xl">
             Every document you need, organized and one search away.
           </h1>
@@ -32,6 +38,17 @@ export function Hero() {
             Browse over 1,200 reports, manuals, academic papers and forms. Preview instantly, read online,
             or download for offline use.
           </p>
+
+          {isReady && !user ? (
+            <div className="flex flex-wrap gap-3">
+              <Link href="/signup" className="inline-flex h-11 items-center rounded-lg bg-white px-5 font-semibold text-primary transition-colors hover:bg-white/90">
+                Create your account
+              </Link>
+              <Link href="/login" className="inline-flex h-11 items-center rounded-lg border border-white/50 px-5 font-semibold text-white transition-colors hover:bg-white/10">
+                Sign in
+              </Link>
+            </div>
+          ) : null}
 
           <Form action="/browse" className="flex w-full max-w-xl flex-col gap-2 rounded-xl bg-card p-2 shadow-lg sm:flex-row" role="search">
             <label htmlFor="hero-search" className="sr-only">

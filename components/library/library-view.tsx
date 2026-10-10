@@ -1,11 +1,16 @@
+'use client'
+
 import Link from 'next/link'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Bookmark, Download, UserRound } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { currentUser, documents, downloadedIds, savedIds } from '@/lib/data'
+import { documents, downloadedIds, savedIds } from '@/lib/data'
 import { ProfileSettings } from '@/components/library/profile-settings'
 import { DownloadedList } from '@/components/library/downloaded-list'
 import { SavedGrid } from '@/components/library/saved-grid'
 import { cn } from '@/lib/utils'
+import { useMockAuth } from '@/lib/mock-auth'
 
 export type LibraryTab = 'profile' | 'downloads' | 'saved'
 
@@ -22,19 +27,27 @@ const titles: Record<LibraryTab, { title: string; description: string }> = {
 }
 
 export function LibraryView({ tab }: { tab: LibraryTab }) {
+  const router = useRouter()
+  const { user, isReady } = useMockAuth()
   const downloaded = downloadedIds.map((id) => documents.find((d) => d.id === id)!).filter(Boolean)
   const saved = savedIds.map((id) => documents.find((d) => d.id === id)!).filter(Boolean)
+
+  useEffect(() => {
+    if (isReady && !user) router.replace(`/login?next=${encodeURIComponent(`/library?tab=${tab}`)}`)
+  }, [isReady, router, tab, user])
+
+  if (!isReady || !user) return <div className="min-h-[40vh]" aria-busy="true" />
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[260px_1fr] lg:px-8">
       <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
         <div className="flex items-center gap-3 rounded-xl border bg-card p-4 shadow-sm">
           <Avatar className="size-12">
-            <AvatarFallback className="bg-primary font-semibold text-primary-foreground">{currentUser.initials}</AvatarFallback>
+            <AvatarFallback className="bg-primary font-semibold text-primary-foreground">{user.initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate font-semibold">{currentUser.name}</p>
-            <p className="truncate text-sm text-muted-foreground">Member since {currentUser.joined}</p>
+            <p className="truncate font-semibold">{user.name}</p>
+            <p className="truncate text-sm text-muted-foreground">Member since {user.joined}</p>
           </div>
         </div>
         <nav aria-label="Library" className="rounded-xl border bg-card p-2 shadow-sm">

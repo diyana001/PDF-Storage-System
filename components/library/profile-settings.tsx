@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { currentUser } from '@/lib/data'
+import { useMockAuth } from '@/lib/mock-auth'
 
 const preferences = [
   { id: 'new-uploads', label: 'New uploads in categories I follow', defaultChecked: true },
@@ -15,12 +15,30 @@ const preferences = [
 ]
 
 export function ProfileSettings() {
+  const { user, updateProfile } = useMockAuth()
   const [savedAt, setSavedAt] = useState<string | null>(null)
+  const [message, setMessage] = useState('')
+  const [name, setName] = useState(user?.name ?? '')
+  const [organization, setOrganization] = useState(user?.organization ?? '')
+
+  useEffect(() => {
+    if (!user) return
+    setName(user.name)
+    setOrganization(user.organization)
+  }, [user])
+
+  if (!user) return null
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault()
+        setMessage('')
+        const formData = new FormData(e.currentTarget)
+        updateProfile({
+          name: String(formData.get('name') ?? '').trim(),
+          organization: String(formData.get('organization') ?? '').trim(),
+        })
         setSavedAt(new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }))
       }}
       className="flex flex-col gap-6"
@@ -31,19 +49,19 @@ export function ProfileSettings() {
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">Full name</Label>
-            <Input id="name" name="name" defaultValue={currentUser.name} autoComplete="name" required />
+            <Input id="name" name="name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="email">Email address</Label>
-            <Input id="email" name="email" type="email" defaultValue={currentUser.email} autoComplete="email" required />
+            <Input id="email" name="email" type="email" value={user.email} autoComplete="email" readOnly />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="organization">Organization</Label>
-            <Input id="organization" name="organization" placeholder="e.g. Northwind Group" autoComplete="organization" />
+            <Input id="organization" name="organization" value={organization} onChange={(event) => setOrganization(event.target.value)} placeholder="e.g. Northwind Group" autoComplete="organization" />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="role">Role</Label>
-            <Input id="role" value={currentUser.role} disabled />
+            <Input id="role" value={user.role} disabled />
           </div>
         </div>
       </fieldset>
@@ -61,6 +79,7 @@ export function ProfileSettings() {
 
       <div className="flex items-center justify-end gap-3">
         <p className="text-sm text-muted-foreground" aria-live="polite">
+          {message ? <span role="alert" className="text-destructive">{message}</span> : null}
           {savedAt ? (
             <span className="flex items-center gap-1.5 text-success">
               <Check className="size-4" aria-hidden="true" />
@@ -68,7 +87,7 @@ export function ProfileSettings() {
             </span>
           ) : null}
         </p>
-        <Button type="reset" variant="outline" onClick={() => setSavedAt(null)}>
+        <Button type="button" variant="outline" onClick={() => { setName(user.name); setOrganization(user.organization); setSavedAt(null); setMessage('') }}>
           Cancel
         </Button>
         <Button type="submit">Save changes</Button>

@@ -207,14 +207,6 @@ export const documents: PdfDocument[] = [
   },
 ]
 
-export const currentUser = {
-  name: 'Sarah Johnson',
-  email: 'sarah.johnson@pdfhub.io',
-  initials: 'SJ',
-  role: 'Member',
-  joined: 'March 2025',
-}
-
 export const adminUser = {
   name: 'Alex Morgan',
   email: 'alex.morgan@pdfhub.io',

@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { FileText, Download, ShieldCheck } from 'lucide-react'
 import { Logo } from '@/components/logo'
 
@@ -12,9 +11,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       <div className="flex flex-col px-6 py-8 sm:px-12">
-        <Link href="/" aria-label="PDFHub home" className="w-fit">
-          <Logo />
-        </Link>
+        <Logo />
         <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">{children}</main>
       </div>
       <aside className="relative hidden flex-col justify-end overflow-hidden bg-primary p-12 text-primary-foreground lg:flex">
