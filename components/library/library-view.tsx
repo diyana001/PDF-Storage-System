@@ -3,25 +3,28 @@
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bookmark, Download, UserRound } from 'lucide-react'
+import { Bookmark, Download, FileUp, UserRound } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { documents, downloadedIds, savedIds } from '@/lib/data'
 import { ProfileSettings } from '@/components/library/profile-settings'
 import { DownloadedList } from '@/components/library/downloaded-list'
 import { SavedGrid } from '@/components/library/saved-grid'
+import { PersonalUploadsList } from '@/components/library/personal-uploads-list'
 import { cn } from '@/lib/utils'
 import { useMockAuth } from '@/lib/mock-auth'
 
-export type LibraryTab = 'profile' | 'downloads' | 'saved'
+export type LibraryTab = 'profile' | 'uploads' | 'downloads' | 'saved'
 
 const nav = [
   { tab: 'profile', label: 'Profile Settings', icon: UserRound },
+  { tab: 'uploads', label: 'My Uploads', icon: FileUp },
   { tab: 'downloads', label: 'My Downloaded Files', icon: Download, count: downloadedIds.length },
   { tab: 'saved', label: 'Saved Documents', icon: Bookmark, count: savedIds.length },
 ] as const
 
 const titles: Record<LibraryTab, { title: string; description: string }> = {
   profile: { title: 'Profile settings', description: 'Manage your personal details and notification preferences.' },
+  uploads: { title: 'My personal uploads', description: 'Your private PDFs, kept separate from the public catalog and your downloads.' },
   downloads: { title: 'My downloaded files', description: 'Every document you have downloaded, most recent first.' },
   saved: { title: 'Saved documents', description: 'Documents you bookmarked to read later.' },
 }
@@ -92,6 +95,7 @@ export function LibraryView({ tab }: { tab: LibraryTab }) {
           <p className="text-muted-foreground">{titles[tab].description}</p>
         </div>
         {tab === 'profile' ? <ProfileSettings /> : null}
+        {tab === 'uploads' ? <PersonalUploadsList /> : null}
         {tab === 'downloads' ? <DownloadedList docs={downloaded} /> : null}
         {tab === 'saved' ? <SavedGrid docs={saved} /> : null}
       </section>

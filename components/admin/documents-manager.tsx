@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { CategoryIcon } from '@/components/category-icon'
-import { UploadDialog, type UploadedDoc } from '@/components/admin/upload-dialog'
+import { UploadDialog, type UploadedDoc } from '@/components/upload-dialog'
 import { categories, documents, formatDate, formatNumber, formatSize, getCategory, type PdfDocument } from '@/lib/data'
 
 const categoryItems = [{ value: 'all', label: 'All categories' }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]

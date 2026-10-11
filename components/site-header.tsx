@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Bookmark, Download, LogOut, Search, Settings } from 'lucide-react'
+import { Bookmark, Download, LogOut, Plus, Search, Settings } from 'lucide-react'
 import { useMockAuth } from '@/lib/mock-auth'
+import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -63,39 +64,53 @@ export function SiteHeader() {
           </div>
         </form>
 
-        {!isReady ? <span aria-hidden="true" className="size-9 shrink-0" /> : user ? <DropdownMenu>
-          <DropdownMenuTrigger
-            className="shrink-0 rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-            aria-label="Open account menu"
-          >
-            <Avatar className="size-9">
-              <AvatarFallback className="bg-primary font-medium text-primary-foreground">
-                {user.initials || user.email.slice(0, 1).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>
-                <span className="block text-sm font-medium text-foreground">{user.name}</span>
-                <span className="block text-xs font-normal text-muted-foreground">{user.email}</span>
-              </DropdownMenuLabel>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link href="/library?tab=downloads" />}>
-              <Download aria-hidden="true" /> My Downloads
-            </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/library?tab=saved" />}>
-              <Bookmark aria-hidden="true" /> Saved Documents
-            </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/library?tab=profile" />}>
-              <Settings aria-hidden="true" /> Profile Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onSignOut}>
-              <LogOut aria-hidden="true" /> Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu> : (
+        {!isReady ? (
+          <span aria-hidden="true" className="size-9 shrink-0" />
+        ) : user ? (
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href="/upload" className={buttonVariants({ className: 'h-10 gap-2 px-3 sm:px-4' })} aria-label="Upload Document">
+              <Plus aria-hidden="true" />
+              <span className="hidden sm:inline">Upload Document</span>
+              <span className="sr-only sm:hidden">Upload Document</span>
+            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="shrink-0 rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                aria-label="Open account menu"
+              >
+                <Avatar className="size-9">
+                  <AvatarFallback className="bg-primary font-medium text-primary-foreground">
+                    {user.initials || user.email.slice(0, 1).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>
+                    <span className="block text-sm font-medium text-foreground">{user.name}</span>
+                    <span className="block text-xs font-normal text-muted-foreground">{user.email}</span>
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem render={<Link href="/library?tab=downloads" />}>
+                  <Download aria-hidden="true" /> My Downloads
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/library?tab=uploads" />}>
+                  <Plus aria-hidden="true" /> My Uploads
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/library?tab=saved" />}>
+                  <Bookmark aria-hidden="true" /> Saved Documents
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/library?tab=profile" />}>
+                  <Settings aria-hidden="true" /> Profile Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onSignOut}>
+                  <LogOut aria-hidden="true" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : (
           <div className="flex shrink-0 items-center gap-2">
             <Link href="/login" className="rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-muted">
               Sign in

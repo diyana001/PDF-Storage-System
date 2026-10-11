@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ExternalLink, FileText, FolderTree, LayoutDashboard, Settings, Users } from 'lucide-react'
+import { ClipboardCheck, ExternalLink, FileText, FolderTree, LayoutDashboard, Settings, Users } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { cn } from '@/lib/utils'
 
 export const adminNav = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard },
   { href: '/admin/documents', label: 'Manage Documents', icon: FileText },
+  { href: '/admin/pending-submissions', label: 'Pending Submissions', icon: ClipboardCheck },
   { href: '/admin/categories', label: 'Categories', icon: FolderTree },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/settings', label: 'Settings', icon: Settings },

@@ -25,21 +25,27 @@ export function UploadDialog({
   onOpenChange,
   editing,
   onSubmit,
+  privateUpload = false,
+  publicSubmission = false,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   editing: PdfDocument | null
-  onSubmit: (data: UploadedDoc) => void
+  onSubmit: (data: UploadedDoc, file: File | null) => void | Promise<void>
+  privateUpload?: boolean
+  publicSubmission?: boolean
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg">
         {open ? (
           <UploadForm
             key={editing?.id ?? 'new'}
             editing={editing}
-            onSubmit={(data) => {
-              onSubmit(data)
+            privateUpload={privateUpload}
+            publicSubmission={publicSubmission}
+            onSubmit={async (data, file) => {
+              await onSubmit(data, file)
               onOpenChange(false)
             }}
             onCancel={() => onOpenChange(false)}
@@ -54,14 +60,19 @@ function UploadForm({
   editing,
   onSubmit,
   onCancel,
+  privateUpload,
+  publicSubmission,
 }: {
   editing: PdfDocument | null
-  onSubmit: (data: UploadedDoc) => void
+  onSubmit: (data: UploadedDoc, file: File | null) => void | Promise<void>
   onCancel: () => void
+  privateUpload: boolean
+  publicSubmission: boolean
 }) {
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [pending, setPending] = useState(false)
   const [category, setCategory] = useState<CategorySlug>(editing?.category ?? 'reports')
 
   function acceptFile(f: File | undefined) {
@@ -81,25 +92,39 @@ function UploadForm({
   return (
     <form
       className="flex flex-col gap-5"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault()
         if (!editing && !file) {
           setError('Please choose a PDF to upload.')
           return
         }
         const form = new FormData(e.currentTarget)
-        onSubmit({
-          title: String(form.get('title')).trim(),
-          description: String(form.get('description')).trim(),
-          category,
-          sizeMb: file ? Math.max(0.1, Math.round((file.size / 1024 / 1024) * 10) / 10) : editing!.sizeMb,
-        })
+        setPending(true)
+        setError(null)
+        try {
+          await onSubmit({
+            title: String(form.get('title')).trim(),
+            description: String(form.get('description')).trim(),
+            category,
+            sizeMb: file ? Math.max(0.1, Math.round((file.size / 1024 / 1024) * 10) / 10) : editing!.sizeMb,
+          }, file)
+        } catch (caught) {
+          setError(caught instanceof Error ? caught.message : 'The document could not be saved. Please try again.')
+        } finally {
+          setPending(false)
+        }
       }}
     >
       <DialogHeader>
-        <DialogTitle>{editing ? 'Edit document' : 'Upload new PDF'}</DialogTitle>
+        <DialogTitle>{editing ? 'Edit document' : publicSubmission ? 'Submit a public PDF' : 'Upload new PDF'}</DialogTitle>
         <DialogDescription>
-          {editing ? 'Update the document details shown in the catalog.' : 'Add a PDF to the public library. Max 50 MB.'}
+          {editing
+            ? 'Update the document details shown in the catalog.'
+            : privateUpload
+              ? 'Add a PDF to your private My Uploads collection. Max 50 MB.'
+              : publicSubmission
+                ? 'Send this PDF to the admin approval queue. It will stay hidden until approved. Max 50 MB.'
+                : 'Add a PDF to the public library. Max 50 MB.'}
         </DialogDescription>
       </DialogHeader>
 
@@ -113,7 +138,7 @@ function UploadForm({
               <p className="truncate text-sm font-medium">{file.name}</p>
               <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
             </div>
-            <Button type="button" variant="ghost" size="icon" onClick={() => setFile(null)} aria-label="Remove file">
+            <Button type="button" variant="ghost" size="icon" onClick={() => setFile(null)} aria-label="Remove file" disabled={pending}>
               <X />
             </Button>
           </div>
@@ -146,6 +171,7 @@ function UploadForm({
               accept="application/pdf,.pdf"
               className="sr-only"
               onChange={(e) => acceptFile(e.target.files?.[0])}
+              disabled={pending}
             />
           </label>
         )
@@ -165,11 +191,12 @@ function UploadForm({
           required
           defaultValue={editing?.title ?? file?.name.replace(/\.pdf$/i, '') ?? ''}
           key={file?.name}
+          disabled={pending}
         />
       </div>
       <div className="flex flex-col gap-2">
         <Label id="upload-category-label">Category</Label>
-        <Select items={categoryItems} value={category} onValueChange={(v) => setCategory(v as CategorySlug)}>
+        <Select items={categoryItems} value={category} onValueChange={(v) => setCategory(v as CategorySlug)} disabled={pending}>
           <SelectTrigger className="h-10! w-full" aria-labelledby="upload-category-label">
             <SelectValue />
           </SelectTrigger>
@@ -190,14 +217,15 @@ function UploadForm({
           rows={3}
           defaultValue={editing?.description ?? ''}
           placeholder="A short summary shown in search results"
+          disabled={pending}
         />
       </div>
 
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
           Cancel
         </Button>
-        <Button type="submit">{editing ? 'Save changes' : 'Upload PDF'}</Button>
+        <Button type="submit" disabled={pending}>{pending ? 'Saving…' : editing ? 'Save changes' : 'Upload PDF'}</Button>
       </DialogFooter>
     </form>
   )

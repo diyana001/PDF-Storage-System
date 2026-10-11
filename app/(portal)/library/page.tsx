@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Your profile, downloaded files and saved documents.',
 }
 
-const tabs: LibraryTab[] = ['profile', 'downloads', 'saved']
+const tabs: LibraryTab[] = ['profile', 'uploads', 'downloads', 'saved']
 
 export default async function LibraryPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { tab } = await searchParams
