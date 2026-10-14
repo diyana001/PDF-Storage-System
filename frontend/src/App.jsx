@@ -13,6 +13,7 @@ import Sidebar from './components/Sidebar.jsx';
 import DocumentCard from './components/DocumentCard.jsx';
 import UploadPanel from './components/UploadPanel.jsx';
 import LoginPage from './components/LoginPage.jsx';
+import PlansPage from './components/PlansPage.jsx';
 import { getToken, logoutUser } from './services/authApi.js';
 import {
   listDocuments,
@@ -22,13 +23,14 @@ import {
 } from './services/api.js';
 import './styles/app.css';
 
-function Dashboard({ user, onLogout }) {
+function Dashboard({ user, onLogout, onOpenPlans, plan }) {
   const [docs, setDocs] = useState([]);
   const [search, setSearch] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -58,6 +60,11 @@ function Dashboard({ user, onLogout }) {
       : `${(total / 1048576).toFixed(1)} MB`;
 
   async function upload(f) {
+    if (plan === 'free' && docs.length >= 3) {
+      setShowUpgrade(true);
+      return;
+    }
+
     await uploadDocument(f);
     setNotice('PDF uploaded successfully.');
     await refresh();
@@ -249,6 +256,42 @@ function Dashboard({ user, onLogout }) {
       {showUpload && (
         <UploadPanel onClose={() => setShowUpload(false)} onUpload={upload} />
       )}
+
+      {showUpgrade && (
+        <div
+          className="overlay"
+          onMouseDown={(event) =>
+            event.target === event.currentTarget && setShowUpgrade(false)
+          }
+        >
+          <section className="modal upgrade-modal">
+            <button
+              className="icon-btn upgrade-close"
+              aria-label="Close upgrade message"
+              onClick={() => setShowUpgrade(false)}
+            >
+              ×
+            </button>
+            <div className="empty-icon">
+              <HardDrive size={27} />
+            </div>
+            <h2>Upgrade to keep uploading</h2>
+            <p>
+              The Free plan includes up to 3 PDFs. Activate Pro to store more
+              documents.
+            </p>
+            <button
+              className="primary upgrade-action"
+              onClick={() => {
+                setShowUpgrade(false);
+                onOpenPlans();
+              }}
+            >
+              View plans
+            </button>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
@@ -256,21 +299,47 @@ function Dashboard({ user, onLogout }) {
 export default function App() {
   const [user, setUser] = useState(null);
   const [authenticated, setAuthenticated] = useState(Boolean(getToken()));
+  const [showPlans, setShowPlans] = useState(false);
+  const [plan, setPlan] = useState('free');
 
   function handleAuthenticated(nextUser) {
     setUser(nextUser);
     setAuthenticated(true);
+    setPlan('free');
+    setShowPlans(false);
   }
 
   function handleLogout() {
     logoutUser();
     setUser(null);
     setAuthenticated(false);
+    setPlan('free');
+    setShowPlans(false);
   }
 
   if (!authenticated) {
     return <LoginPage onAuthenticated={handleAuthenticated} />;
   }
 
-  return <Dashboard user={user || { username: 'user' }} onLogout={handleLogout} />;
+  if (showPlans) {
+    return (
+      <PlansPage
+        currentPlan={plan}
+        onBack={() => setShowPlans(false)}
+        onActivatePro={() => {
+          setPlan('pro');
+          setShowPlans(false);
+        }}
+      />
+    );
+  }
+
+  return (
+    <Dashboard
+      user={user || { username: 'user' }}
+      onLogout={handleLogout}
+      onOpenPlans={() => setShowPlans(true)}
+      plan={plan}
+    />
+  );
 }
