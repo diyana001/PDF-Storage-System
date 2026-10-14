@@ -10,7 +10,7 @@ import {
 const bytes = (n) =>
   n < 1048576 ? `${Math.round(n / 1024)} KB` : `${(n / 1048576).toFixed(1)} MB`;
 
-export default function DocumentCard({ doc, onDownload, onDelete }) {
+export default function DocumentCard({ doc, onDownload, onDelete, folderName }) {
   return (
     <article className="doc-card">
       <div className="doc-top">
@@ -31,7 +31,9 @@ export default function DocumentCard({ doc, onDownload, onDelete }) {
 
       <h3 title={doc.filename}>{doc.filename}</h3>
 
-      <p className="doc-desc">PDF file stored in your workspace</p>
+      <p className="doc-desc">
+        {folderName ? `Folder: ${folderName}` : 'PDF file stored in your workspace'}
+      </p>
 
       <div className="doc-meta">
         <span>

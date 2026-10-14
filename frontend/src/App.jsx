@@ -20,11 +20,16 @@ import {
   uploadDocument,
   deleteDocument,
   downloadDocument,
+  listFolders,
+  createFolder,
 } from './services/api.js';
 import './styles/app.css';
+import './styles/folders.css';
 
 function Dashboard({ user, onLogout, onOpenPlans, plan }) {
   const [docs, setDocs] = useState([]);
+  const [folders, setFolders] = useState([]);
+  const [selectedFolder, setSelectedFolder] = useState('');
   const [search, setSearch] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,13 +42,19 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
     setError('');
 
     try {
-      setDocs(await listDocuments(search));
+      setDocs(await listDocuments(search, selectedFolder));
     } catch (e) {
       setError(e.message + ' — make sure the backend is running.');
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, selectedFolder]);
+
+  useEffect(() => {
+    listFolders()
+      .then(setFolders)
+      .catch((e) => setError(e.message));
+  }, []);
 
   useEffect(() => {
     refresh();
@@ -59,7 +70,16 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
       ? `${Math.round(total / 1024)} KB`
       : `${(total / 1048576).toFixed(1)} MB`;
 
-  async function upload(f) {
+  async function addFolder(name) {
+    const folder = await createFolder(name);
+    setFolders((current) =>
+      [...current, folder].sort((a, b) => a.name.localeCompare(b.name))
+    );
+    setNotice(`Folder "${folder.name}" created.`);
+    return folder;
+  }
+
+  async function upload(f, folderId) {
     const currentDate = new Date().toISOString().slice(0, 10);
     const currentUsageKey = `pdf_vault_free_uploads_${
       user.id || user.username
@@ -73,11 +93,12 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
       return;
     }
 
-    await uploadDocument(f);
+    await uploadDocument(f, folderId);
     if (plan === 'free') {
       const nextCount = currentDailyUploads + 1;
       localStorage.setItem(currentUsageKey, String(nextCount));
     }
+
     setNotice('PDF uploaded successfully.');
     await refresh();
   }
@@ -204,6 +225,30 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
               <span>
                 {docs.length} {docs.length === 1 ? 'file' : 'files'}
               </span>
+              <select
+                className="folder-filter"
+                value={selectedFolder}
+                onChange={(event) => setSelectedFolder(event.target.value)}
+              >
+                <option value="">All folders</option>
+                {folders.map((folder) => (
+                  <option key={folder.id} value={folder.id}>{folder.name}</option>
+                ))}
+              </select>
+              <button
+                className="secondary folder-create"
+                onClick={async () => {
+                  const name = prompt('Folder name');
+                  if (!name?.trim()) return;
+                  try {
+                    await addFolder(name);
+                  } catch (e) {
+                    setError(e.message);
+                  }
+                }}
+              >
+                + New folder
+              </button>
             </div>
 
             {notice && (
@@ -233,6 +278,7 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
                     doc={doc}
                     onDownload={download}
                     onDelete={remove}
+                    folderName={folders.find((folder) => folder.id === doc.folder_id)?.name}
                   />
                 ))}
               </div>
@@ -266,7 +312,12 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
       </main>
 
       {showUpload && (
-        <UploadPanel onClose={() => setShowUpload(false)} onUpload={upload} />
+        <UploadPanel
+          onClose={() => setShowUpload(false)}
+          onUpload={upload}
+          folders={folders}
+          onCreateFolder={addFolder}
+        />
       )}
 
       {showUpgrade && (

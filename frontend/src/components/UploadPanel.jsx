@@ -1,11 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { UploadCloud, X, FileUp } from 'lucide-react';
 
-export default function UploadPanel({ onClose, onUpload }) {
+export default function UploadPanel({ onClose, onUpload, folders, onCreateFolder }) {
   const ref = useRef();
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [folderId, setFolderId] = useState('');
+  const [newFolder, setNewFolder] = useState('');
 
   function choose(f) {
     setError('');
@@ -25,7 +27,7 @@ export default function UploadPanel({ onClose, onUpload }) {
     setBusy(true);
 
     try {
-      await onUpload(file);
+      await onUpload(file, folderId);
       onClose();
     } catch (e) {
       setError(e.message);
@@ -74,6 +76,40 @@ export default function UploadPanel({ onClose, onUpload }) {
           accept=".pdf,application/pdf"
           onChange={(e) => choose(e.target.files[0])}
         />
+
+        <label className="folder-field">
+          Folder
+          <select value={folderId} onChange={(event) => setFolderId(event.target.value)}>
+            <option value="">Uncategorized</option>
+            {folders.map((folder) => (
+              <option key={folder.id} value={folder.id}>{folder.name}</option>
+            ))}
+          </select>
+        </label>
+
+        <div className="new-folder-row">
+          <input
+            value={newFolder}
+            onChange={(event) => setNewFolder(event.target.value)}
+            placeholder="Create a new folder"
+          />
+          <button
+            className="secondary"
+            type="button"
+            disabled={!newFolder.trim()}
+            onClick={async () => {
+              try {
+                const folder = await onCreateFolder(newFolder);
+                setFolderId(folder.id);
+                setNewFolder('');
+              } catch (e) {
+                setError(e.message);
+              }
+            }}
+          >
+            Add folder
+          </button>
+        </div>
 
         {error && <p className="error-text">{error}</p>}
 
