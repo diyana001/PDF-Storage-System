@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   FileText,
   Download,
@@ -50,4 +51,3 @@ export default function DocumentCard({ doc, onDownload, onDelete }) {
     </article>
   );
 }
-

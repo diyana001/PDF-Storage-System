@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { UploadCloud, X, FileUp } from 'lucide-react';
 
 export default function UploadPanel({ onClose, onUpload }) {
@@ -90,4 +90,3 @@ export default function UploadPanel({ onClose, onUpload }) {
     </div>
   );
 }
-

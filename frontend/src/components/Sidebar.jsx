@@ -1,3 +1,4 @@
+import React from 'react';
 import { Files, LayoutDashboard, ShieldCheck, Settings } from 'lucide-react';
 
 export default function Sidebar() {
@@ -36,4 +37,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-

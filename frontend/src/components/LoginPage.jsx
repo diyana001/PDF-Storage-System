@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FileText, LogIn } from 'lucide-react';
 import { loginUser, registerUser } from '../services/authApi.js';
 import '../styles/auth.css';
