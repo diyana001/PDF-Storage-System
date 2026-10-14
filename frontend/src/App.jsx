@@ -7,6 +7,9 @@ import {
   HardDrive,
   FileText,
   RefreshCw,
+  Linkedin,
+  Youtube,
+  Facebook,
 } from 'lucide-react';
 
 import Sidebar from './components/Sidebar.jsx';
@@ -25,6 +28,7 @@ import {
 } from './services/api.js';
 import './styles/app.css';
 import './styles/folders.css';
+import './styles/footer.css';
 
 function Dashboard({ user, onLogout, onOpenPlans, plan }) {
   const [docs, setDocs] = useState([]);
@@ -304,9 +308,51 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
             )}
           </section>
 
-          <footer className="page-footer">
-            PDF VAULT · A CLEARER WAY TO STORE DOCUMENTS{' '}
-            <span>Built for your workflow</span>
+          <footer className="site-footer">
+            <div className="footer-main">
+              <div className="footer-company">
+                <h2>EgoTECH</h2>
+                <p>
+                  A clearer way to store, organize, and manage your digital
+                  documents securely.
+                </p>
+              </div>
+
+              <div className="footer-column">
+                <h3>Explore</h3>
+                <a href="#documents">Documents</a>
+                <a href="#folders">Folders</a>
+                <a href="#plans" onClick={(event) => {
+                  event.preventDefault();
+                  onOpenPlans();
+                }}>Plans</a>
+              </div>
+
+              <div className="footer-column">
+                <h3>Legal &amp; Support</h3>
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Service</a>
+                <a href="mailto:support@egotech.com">Contact Us</a>
+              </div>
+
+              <div className="footer-updates">
+                <h3>Stay Updated</h3>
+                <p>Subscribe for product updates and useful document tips.</p>
+                <div className="footer-subscribe">
+                  <input type="email" placeholder="Your email address" aria-label="Your email address" />
+                  <button type="button">Subscribe</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="footer-bottom">
+              <span>© 2026 EgoTECH. All rights reserved.</span>
+              <div className="footer-socials" aria-label="Social links">
+                <a href="#linkedin" aria-label="LinkedIn"><Linkedin size={17} /></a>
+                <a href="#youtube" aria-label="YouTube"><Youtube size={17} /></a>
+                <a href="#facebook" aria-label="Facebook"><Facebook size={17} /></a>
+              </div>
+            </div>
           </footer>
         </div>
       </main>
