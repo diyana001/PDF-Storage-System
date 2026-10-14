@@ -12,6 +12,8 @@ import {
 import Sidebar from './components/Sidebar.jsx';
 import DocumentCard from './components/DocumentCard.jsx';
 import UploadPanel from './components/UploadPanel.jsx';
+import LoginPage from './components/LoginPage.jsx';
+import { getToken, logoutUser } from './services/authApi.js';
 import {
   listDocuments,
   uploadDocument,
@@ -20,7 +22,7 @@ import {
 } from './services/api.js';
 import './styles/app.css';
 
-export default function App() {
+function Dashboard({ user, onLogout }) {
   const [docs, setDocs] = useState([]);
   const [search, setSearch] = useState('');
   const [showUpload, setShowUpload] = useState(false);
@@ -101,7 +103,9 @@ export default function App() {
               <Bell />
             </button>
 
-            <div className="avatar">PV</div>
+            <button className="avatar" title="Log out" onClick={onLogout}>
+              {user.username.slice(0, 2).toUpperCase()}
+            </button>
           </div>
         </header>
 
@@ -248,3 +252,24 @@ export default function App() {
   );
 }
 
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [authenticated, setAuthenticated] = useState(Boolean(getToken()));
+
+  function handleAuthenticated(nextUser) {
+    setUser(nextUser);
+    setAuthenticated(true);
+  }
+
+  function handleLogout() {
+    logoutUser();
+    setUser(null);
+    setAuthenticated(false);
+  }
+
+  if (!authenticated) {
+    return <LoginPage onAuthenticated={handleAuthenticated} />;
+  }
+
+  return <Dashboard user={user || { username: 'user' }} onLogout={handleLogout} />;
+}
