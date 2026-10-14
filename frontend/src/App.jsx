@@ -103,8 +103,9 @@ function Dashboard({ user, onLogout }) {
               <Bell />
             </button>
 
-            <button className="avatar" title="Log out" onClick={onLogout}>
-              {user.username.slice(0, 2).toUpperCase()}
+            <span className="user-name">{user.username}</span>
+            <button className="secondary" onClick={onLogout}>
+              Log out
             </button>
           </div>
         </header>
