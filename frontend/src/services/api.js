@@ -4,6 +4,7 @@ async function req(path,options={}){const headers=new Headers(options.headers);c
 export async function listDocuments(search='',folderId=''){return (await req('/documents?search='+encodeURIComponent(search)+'&folder_id='+encodeURIComponent(folderId))).json()}
 export async function listFolders(){return (await req('/documents/folders')).json()}
 export async function createFolder(name){return (await req('/documents/folders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})})).json()}
+export async function deleteFolder(id){return req('/documents/folders/'+id,{method:'DELETE'})}
 export async function uploadDocument(file,folderId=''){const f=new FormData();f.append('file',file);if(folderId)f.append('folder_id',folderId);return (await req('/documents',{method:'POST',body:f})).json()}
 export async function deleteDocument(id){return req('/documents/'+id,{method:'DELETE'})}
 export async function downloadDocument(id,name){const r=await req('/documents/'+id+'/download');const u=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}

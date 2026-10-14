@@ -1,12 +1,18 @@
 import React, { useRef, useState } from 'react';
 import { UploadCloud, X, FileUp } from 'lucide-react';
 
-export default function UploadPanel({ onClose, onUpload, folders, onCreateFolder }) {
+export default function UploadPanel({
+  onClose,
+  onUpload,
+  folders,
+  initialFolderId = '',
+  onCreateFolder,
+}) {
   const ref = useRef();
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [folderId, setFolderId] = useState('');
+  const [folderId, setFolderId] = useState(initialFolderId);
   const [newFolder, setNewFolder] = useState('');
 
   function choose(f) {

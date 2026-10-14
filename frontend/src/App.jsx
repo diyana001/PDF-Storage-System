@@ -7,6 +7,9 @@ import {
   HardDrive,
   FileText,
   RefreshCw,
+  FolderOpen,
+  ArrowLeft,
+  Trash2,
   Linkedin,
   Youtube,
   Facebook,
@@ -25,6 +28,7 @@ import {
   downloadDocument,
   listFolders,
   createFolder,
+  deleteFolder,
 } from './services/api.js';
 import './styles/app.css';
 import './styles/folders.css';
@@ -73,6 +77,9 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
     total < 1048576
       ? `${Math.round(total / 1024)} KB`
       : `${(total / 1048576).toFixed(1)} MB`;
+  const activeFolder = folders.find((folder) => folder.id === selectedFolder);
+  const folderDocumentCount = (folderId) =>
+    docs.filter((doc) => doc.folder_id === folderId).length;
 
   async function addFolder(name) {
     const folder = await createFolder(name);
@@ -81,6 +88,25 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
     );
     setNotice(`Folder "${folder.name}" created.`);
     return folder;
+  }
+
+  async function removeFolder(folder) {
+    if (!confirm(`Delete the "${folder.name}" folder? PDFs inside it will be kept uncategorized.`)) {
+      return;
+    }
+
+    try {
+      await deleteFolder(folder.id);
+      setFolders((current) => current.filter((item) => item.id !== folder.id));
+      if (selectedFolder === folder.id) {
+        setSelectedFolder('');
+        setSearch('');
+      }
+      setNotice(`Folder "${folder.name}" deleted.`);
+      await refresh();
+    } catch (e) {
+      setError(e.message);
+    }
   }
 
   async function upload(f, folderId) {
@@ -207,14 +233,95 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
           <section className="library">
             <div className="library-head">
               <div>
-                <h2>Your library</h2>
-                <p>Browse, search, and manage your saved files.</p>
+                {activeFolder ? (
+                  <button
+                    className="back-to-folders"
+                    onClick={() => {
+                      setSelectedFolder('');
+                      setSearch('');
+                    }}
+                  >
+                    <ArrowLeft size={15} /> All folders
+                  </button>
+                ) : null}
+                <h2>{activeFolder ? activeFolder.name : 'Your library'}</h2>
+                <p>
+                  {activeFolder
+                    ? 'PDFs saved inside this folder.'
+                    : 'Browse your folders and manage your saved files.'}
+                </p>
               </div>
 
               <button className="refresh" onClick={refresh}>
                 <RefreshCw size={15} /> Refresh
               </button>
             </div>
+
+            {!activeFolder && (
+              <div className="folders-home">
+                <div className="folders-heading">
+                  <div>
+                    <h3>Your folders</h3>
+                    <p>Open a folder to view the PDFs inside it.</p>
+                  </div>
+                  <button
+                    className="secondary folder-create"
+                    onClick={async () => {
+                      const name = prompt('Folder name');
+                      if (!name?.trim()) return;
+                      try {
+                        await addFolder(name);
+                      } catch (e) {
+                        setError(e.message);
+                      }
+                    }}
+                  >
+                    + New folder
+                  </button>
+                </div>
+
+                {folders.length ? (
+                  <div className="folder-grid">
+                    {folders.map((folder) => (
+                      <div
+                        className="folder-card"
+                        key={folder.id}
+                      >
+                        <button
+                          className="folder-open"
+                          onClick={() => {
+                            setSearch('');
+                            setSelectedFolder(folder.id);
+                          }}
+                        >
+                          <FolderOpen size={25} />
+                          <span>
+                            <b>{folder.name}</b>
+                            <small>
+                              {folderDocumentCount(folder.id)}{' '}
+                              {folderDocumentCount(folder.id) === 1 ? 'PDF' : 'PDFs'}
+                            </small>
+                          </span>
+                        </button>
+                        <button
+                          className="folder-delete"
+                          aria-label={`Delete ${folder.name} folder`}
+                          title="Delete folder"
+                          onClick={() => removeFolder(folder)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="folders-empty">
+                    <FolderOpen size={20} />
+                    <span>No folders yet. Create one to organize your PDFs.</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="toolbar">
               <label className="search">
@@ -229,30 +336,6 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
               <span>
                 {docs.length} {docs.length === 1 ? 'file' : 'files'}
               </span>
-              <select
-                className="folder-filter"
-                value={selectedFolder}
-                onChange={(event) => setSelectedFolder(event.target.value)}
-              >
-                <option value="">All folders</option>
-                {folders.map((folder) => (
-                  <option key={folder.id} value={folder.id}>{folder.name}</option>
-                ))}
-              </select>
-              <button
-                className="secondary folder-create"
-                onClick={async () => {
-                  const name = prompt('Folder name');
-                  if (!name?.trim()) return;
-                  try {
-                    await addFolder(name);
-                  } catch (e) {
-                    setError(e.message);
-                  }
-                }}
-              >
-                + New folder
-              </button>
             </div>
 
             {notice && (
@@ -362,6 +445,7 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
           onClose={() => setShowUpload(false)}
           onUpload={upload}
           folders={folders}
+          initialFolderId={selectedFolder}
           onCreateFolder={addFolder}
         />
       )}

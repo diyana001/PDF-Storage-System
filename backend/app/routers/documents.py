@@ -34,6 +34,20 @@ def create_folder(payload:FolderRequest,db:Session=Depends(get_db),user:User=Dep
     db.commit()
     db.refresh(folder)
     return {'id': folder.id, 'name': folder.name}
+
+@router.delete('/folders/{folder_id}', status_code=204)
+def delete_folder(folder_id:str,db:Session=Depends(get_db),user:User=Depends(get_current_user)):
+    folder = db.query(Folder).filter(
+        Folder.id == folder_id, Folder.user_id == user.id
+    ).first()
+    if not folder:
+        raise HTTPException(404, 'Folder not found.')
+
+    db.query(Document).filter(
+        Document.folder_id == folder.id, Document.user_id == user.id
+    ).update({Document.folder_id: None}, synchronize_session=False)
+    db.delete(folder)
+    db.commit()
 def pdf_dir():
     p=Path(settings.storage_dir)
     if not p.is_absolute(): p=Path(__file__).resolve().parents[2]/p
