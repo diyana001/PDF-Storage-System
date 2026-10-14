@@ -60,12 +60,24 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
       : `${(total / 1048576).toFixed(1)} MB`;
 
   async function upload(f) {
-    if (plan === 'free' && docs.length >= 3) {
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const currentUsageKey = `pdf_vault_free_uploads_${
+      user.id || user.username
+    }_${currentDate}`;
+    const currentDailyUploads = Number(
+      localStorage.getItem(currentUsageKey) || 0
+    );
+
+    if (plan === 'free' && currentDailyUploads >= 3) {
       setShowUpgrade(true);
       return;
     }
 
     await uploadDocument(f);
+    if (plan === 'free') {
+      const nextCount = currentDailyUploads + 1;
+      localStorage.setItem(currentUsageKey, String(nextCount));
+    }
     setNotice('PDF uploaded successfully.');
     await refresh();
   }
@@ -277,8 +289,8 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
             </div>
             <h2>Upgrade to keep uploading</h2>
             <p>
-              The Free plan includes up to 3 PDFs. Activate Pro to store more
-              documents.
+              The Free plan includes 3 PDF uploads per day. Your allowance
+              resets tomorrow.
             </p>
             <button
               className="primary upgrade-action"

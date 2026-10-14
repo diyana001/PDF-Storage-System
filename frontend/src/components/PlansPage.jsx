@@ -22,7 +22,7 @@ export default function PlansPage({ currentPlan, onBack, onActivatePro }) {
           <p className="plan-price">$0 <span>/ forever</span></p>
           <p>Everything you need to get started.</p>
           <ul>
-            <li><Check size={16} /> Store up to 3 PDFs</li>
+            <li><Check size={16} /> Upload up to 3 PDFs per day</li>
             <li><Check size={16} /> Search your documents</li>
             <li><Check size={16} /> Download your files</li>
           </ul>
