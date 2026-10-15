@@ -515,6 +515,18 @@ export default function App() {
   const [plan, setPlan] = useState('free');
   const [workspace, setWorkspace] = useState('pdfs');
 
+  useEffect(() => {
+    const expireSession = () => {
+      logoutUser();
+      setUser(null);
+      setAuthenticated(false);
+      setShowPlans(false);
+      setWorkspace('pdfs');
+    };
+    window.addEventListener('auth-expired', expireSession);
+    return () => window.removeEventListener('auth-expired', expireSession);
+  }, []);
+
   function handleAuthenticated(nextUser) {
     setUser(nextUser);
     setAuthenticated(true);

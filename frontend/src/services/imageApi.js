@@ -10,6 +10,7 @@ async function request(path, options = {}) {
   if (!response.ok) {
     let message = 'Request failed';
     try { message = (await response.json()).detail || message; } catch {}
+    if (response.status === 401) window.dispatchEvent(new Event('auth-expired'));
     throw new Error(message);
   }
   return response;
