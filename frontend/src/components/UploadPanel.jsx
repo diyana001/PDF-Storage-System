@@ -85,8 +85,7 @@ export default function UploadPanel({
 
         <label className="folder-field">
           Folder
-          <select value={folderId} onChange={(event) => setFolderId(event.target.value)}>
-            <option value="">Uncategorized</option>
+          <select value={folderId} onChange={(event) => setFolderId(event.target.value)} required>
             {folders.map((folder) => (
               <option key={folder.id} value={folder.id}>{folder.name}</option>
             ))}

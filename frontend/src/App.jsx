@@ -110,6 +110,10 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
   }
 
   async function upload(f, folderId) {
+    if (!folderId) {
+      throw new Error('Open a folder before uploading a PDF.');
+    }
+
     const currentDate = new Date().toISOString().slice(0, 10);
     const currentUsageKey = `pdf_vault_free_uploads_${
       user.id || user.username
@@ -190,9 +194,11 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
               <p>Everything you need, neatly organized in one place.</p>
             </div>
 
-            <button className="primary" onClick={() => setShowUpload(true)}>
-              <Plus size={18} /> Upload PDF
-            </button>
+            {activeFolder ? (
+              <button className="primary" onClick={() => setShowUpload(true)}>
+                <Plus size={18} /> Upload PDF
+              </button>
+            ) : null}
           </section>
 
           <section className="stats">
@@ -323,20 +329,22 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
               </div>
             )}
 
-            <div className="toolbar">
-              <label className="search">
-                <Search size={18} />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search documents by filename…"
-                />
-              </label>
+            {activeFolder ? (
+              <div className="toolbar">
+                <label className="search">
+                  <Search size={18} />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search documents by filename…"
+                  />
+                </label>
 
-              <span>
-                {docs.length} {docs.length === 1 ? 'file' : 'files'}
-              </span>
-            </div>
+                <span>
+                  {docs.length} {docs.length === 1 ? 'file' : 'files'}
+                </span>
+              </div>
+            ) : null}
 
             {notice && (
               <div className="notice">
@@ -352,7 +360,15 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
               </div>
             )}
 
-            {loading ? (
+            {!activeFolder ? (
+              <div className="empty folder-home-message">
+                <div className="empty-icon">
+                  <FolderOpen size={28} />
+                </div>
+                <h3>Choose a folder</h3>
+                <p>Open a folder above to view and upload its PDFs.</p>
+              </div>
+            ) : loading ? (
               <div className="empty">
                 <div className="spinner" />
                 <h3>Loading your library…</h3>
@@ -382,7 +398,7 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
                     : 'Upload your first PDF and it will appear here.'}
                 </p>
 
-                {!search && (
+                {!search && activeFolder && (
                   <button className="primary" onClick={() => setShowUpload(true)}>
                     <Plus size={17} /> Upload your first PDF
                   </button>
