@@ -1,5 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, FolderOpen, Image as ImageIcon, Plus, RefreshCw, Trash2, UploadCloud, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Bell,
+  Files,
+  FolderOpen,
+  HardDrive,
+  Image as ImageIcon,
+  Plus,
+  RefreshCw,
+  Trash2,
+  UploadCloud,
+  X,
+} from 'lucide-react';
 import Sidebar from './Sidebar.jsx';
 import {
   createImageCategory, deleteImage, deleteImageCategory, getImageUrl,
@@ -95,13 +107,49 @@ export default function ImageWorkspace({
   return <div className="shell">
     <Sidebar workspace="images" onWorkspaceChange={onWorkspaceChange} />
     <main className="main">
-      <header className="topbar"><div className="crumb">Workspace <span>/</span> <b>Images</b></div><div className="top-actions"><span className="user-name">{user.username}</span><button className="secondary" onClick={onLogout}>Log out</button></div></header>
+      <header className="topbar">
+        <div className="crumb">Workspace <span>/</span> <b>Images</b></div>
+        <div className="top-actions">
+          <span className="status"><i /> Local workspace</span>
+          <button className="icon-btn" aria-label="Notifications"><Bell /></button>
+          <span className="user-name">{user.username}</span>
+          <button className="secondary" onClick={onLogout}>Log out</button>
+        </div>
+      </header>
       <div className="content">
-        <section className="page-head"><div><small className="eyebrow">IMAGE LIBRARY</small><h1>{activeCategory ? activeCategory.name : 'Image categories'}</h1><p>{activeCategory ? 'Images saved inside this category.' : 'Create categories to organize your images.'}</p></div>{activeCategory ? <button className="primary" onClick={() => setShowUpload(true)}><Plus size={18} /> Upload image</button> : <button className="primary" onClick={addCategory}><Plus size={18} /> New category</button>}</section>
+        <section className="page-head">
+          <div>
+            <small className="eyebrow">YOUR IMAGE LIBRARY</small>
+            <h1>
+              {activeCategory ? activeCategory.name : 'Images'}{' '}
+              <span className="count">{activeCategory ? images.length : categories.length}</span>
+            </h1>
+            <p>{activeCategory ? 'Images saved inside this category.' : 'Everything you need, neatly organized in one place.'}</p>
+          </div>
+          {activeCategory ? (
+            <button className="primary" onClick={() => setShowUpload(true)}><Plus size={18} /> Upload image</button>
+          ) : (
+            <button className="primary" onClick={addCategory}><Plus size={18} /> New category</button>
+          )}
+        </section>
+        <section className="stats">
+          <div className="stat">
+            <div className="stat-icon green"><Files /></div>
+            <div><span>Total images</span><strong>{activeCategory ? images.length : categories.length}</strong><small>{activeCategory ? 'Images in this category' : 'Categories in your library'}</small></div>
+          </div>
+          <div className="stat">
+            <div className="stat-icon sand"><HardDrive /></div>
+            <div><span>Storage used</span><strong>{activeCategory ? `${(images.reduce((sum, image) => sum + image.size_bytes, 0) / 1048576).toFixed(1)} MB` : '—'}</strong><small>Across visible images</small></div>
+          </div>
+          <div className="stat">
+            <div className="stat-icon lilac"><ImageIcon /></div>
+            <div><span>File format</span><strong>IMAGE</strong><small>Validated on upload</small></div>
+          </div>
+        </section>
         {notice && <div className="notice">{notice}<button onClick={() => setNotice('')}>Dismiss</button></div>}
         {error && <div className="error-banner">{error}<button onClick={() => setError('')}>Dismiss</button></div>}
         <section className="library">
-          <div className="library-head"><div>{activeCategory && <button className="back-to-folders" onClick={() => { setActiveCategory(null); setSearch(''); }}><ArrowLeft size={15} /> All categories</button>}<h2>{activeCategory ? activeCategory.name : 'Your categories'}</h2><p>{activeCategory ? 'Browse, preview, and manage images.' : 'Open a category to see its images.'}</p></div><button className="refresh" onClick={() => activeCategory ? refreshImages() : refreshCategories()}><RefreshCw size={15} /> Refresh</button></div>
+          <div className="library-head"><div>{activeCategory && <button className="back-to-folders" onClick={() => { setActiveCategory(null); setSearch(''); }}><ArrowLeft size={15} /> All categories</button>}<h2>{activeCategory ? activeCategory.name : 'Your library'}</h2><p>{activeCategory ? 'Browse, preview, and manage images.' : 'Browse your categories and manage your saved images.'}</p></div><button className="refresh" onClick={() => activeCategory ? refreshImages() : refreshCategories()}><RefreshCw size={15} /> Refresh</button></div>
           {!activeCategory ? <div className="folder-grid">{categories.map((category) => <div className="folder-card" key={category.id}><button className="folder-open" onClick={() => setActiveCategory(category)}><FolderOpen size={25} /><span><b>{category.name}</b><small>Open category</small></span></button><button className="folder-delete" onClick={() => removeCategory(category)} aria-label={`Delete ${category.name}`}><Trash2 size={15} /></button></div>)}{!categories.length && <div className="empty"><ImageIcon size={28} /><h3>No image categories yet</h3><p>Create a category before uploading images.</p></div>}</div> : <><div className="toolbar"><label className="search"><ImageIcon size={18} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search images by filename…" /></label><span>{images.length} {images.length === 1 ? 'image' : 'images'}</span></div>{loading ? <div className="empty">Loading images…</div> : <div className="image-grid">{images.map((image) => <article className="image-card" key={image.id}><img src={previews[image.id]} alt={image.filename} /><div><b title={image.filename}>{image.filename}</b><button className="icon-btn delete" onClick={() => removeImage(image)}><Trash2 size={16} /></button></div></article>)}{!images.length && <div className="empty"><ImageIcon size={28} /><h3>No images in this category</h3><p>Upload an image to this category.</p></div>}</div>}</>}
         </section>
       </div>

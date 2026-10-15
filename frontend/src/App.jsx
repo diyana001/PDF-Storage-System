@@ -35,6 +35,7 @@ import './styles/app.css';
 import './styles/folders.css';
 import './styles/footer.css';
 import './styles/images.css';
+import './styles/workspaces.css';
 
 function Dashboard({ user, onLogout, onOpenPlans, plan, onWorkspaceChange }) {
   const [docs, setDocs] = useState([]);
