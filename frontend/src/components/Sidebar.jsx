@@ -1,7 +1,7 @@
 import React from 'react';
-import { Files, LayoutDashboard, ShieldCheck, Settings } from 'lucide-react';
+import { Files, Image, ShieldCheck, Settings } from 'lucide-react';
 
-export default function Sidebar() {
+export default function Sidebar({ workspace, onWorkspaceChange }) {
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -10,16 +10,19 @@ export default function Sidebar() {
         </div>
 
         <div>
-          <b>PDF Vault</b>
-          <small>DOCUMENT WORKSPACE</small>
+          <b>{workspace === 'images' ? 'Image Vault' : 'PDF Vault'}</b>
+          <small>{workspace === 'images' ? 'IMAGE WORKSPACE' : 'DOCUMENT WORKSPACE'}</small>
         </div>
       </div>
 
       <p className="nav-label">WORKSPACE</p>
 
-      <div className="nav-active">
+      <button className={workspace === 'pdfs' ? 'nav-active' : 'nav-muted'} onClick={() => onWorkspaceChange('pdfs')}>
         <Files size={18} /> Documents
-      </div>
+      </button>
+      <button className={workspace === 'images' ? 'nav-active' : 'nav-muted'} onClick={() => onWorkspaceChange('images')}>
+        <Image size={18} /> Images
+      </button>
 
       <div className="sidebar-bottom">
         <div className="secure">

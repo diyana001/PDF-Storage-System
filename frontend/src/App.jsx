@@ -20,6 +20,7 @@ import DocumentCard from './components/DocumentCard.jsx';
 import UploadPanel from './components/UploadPanel.jsx';
 import LoginPage from './components/LoginPage.jsx';
 import PlansPage from './components/PlansPage.jsx';
+import ImageWorkspace from './components/ImageWorkspace.jsx';
 import { getToken, logoutUser } from './services/authApi.js';
 import {
   listDocuments,
@@ -33,8 +34,9 @@ import {
 import './styles/app.css';
 import './styles/folders.css';
 import './styles/footer.css';
+import './styles/images.css';
 
-function Dashboard({ user, onLogout, onOpenPlans, plan }) {
+function Dashboard({ user, onLogout, onOpenPlans, plan, onWorkspaceChange }) {
   const [docs, setDocs] = useState([]);
   const [folders, setFolders] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState('');
@@ -159,7 +161,7 @@ function Dashboard({ user, onLogout, onOpenPlans, plan }) {
 
   return (
     <div className="shell">
-      <Sidebar />
+      <Sidebar workspace="pdfs" onWorkspaceChange={onWorkspaceChange} />
 
       <main className="main">
         <header className="topbar">
@@ -510,12 +512,14 @@ export default function App() {
   const [authenticated, setAuthenticated] = useState(Boolean(getToken()));
   const [showPlans, setShowPlans] = useState(false);
   const [plan, setPlan] = useState('free');
+  const [workspace, setWorkspace] = useState('pdfs');
 
   function handleAuthenticated(nextUser) {
     setUser(nextUser);
     setAuthenticated(true);
     setPlan('free');
     setShowPlans(false);
+    setWorkspace('pdfs');
   }
 
   function handleLogout() {
@@ -524,6 +528,7 @@ export default function App() {
     setAuthenticated(false);
     setPlan('free');
     setShowPlans(false);
+    setWorkspace('pdfs');
   }
 
   if (!authenticated) {
@@ -543,12 +548,25 @@ export default function App() {
     );
   }
 
+  if (workspace === 'images') {
+    return (
+      <ImageWorkspace
+        user={user || { username: 'user' }}
+        onLogout={handleLogout}
+        onWorkspaceChange={setWorkspace}
+        onOpenPlans={() => setShowPlans(true)}
+        plan={plan}
+      />
+    );
+  }
+
   return (
     <Dashboard
       user={user || { username: 'user' }}
       onLogout={handleLogout}
       onOpenPlans={() => setShowPlans(true)}
       plan={plan}
+      onWorkspaceChange={setWorkspace}
     />
   );
 }

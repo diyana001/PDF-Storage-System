@@ -19,6 +19,24 @@ class Folder(Base):
     user_id:Mapped[str]=mapped_column(ForeignKey('users.id'),nullable=False,index=True)
     created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=lambda:datetime.now(timezone.utc),nullable=False)
 
+class ImageCategory(Base):
+    __tablename__='image_categories'
+    id:Mapped[str]=mapped_column(String(36),primary_key=True)
+    name:Mapped[str]=mapped_column(String(120),nullable=False)
+    user_id:Mapped[str]=mapped_column(ForeignKey('users.id'),nullable=False,index=True)
+    created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=lambda:datetime.now(timezone.utc),nullable=False)
+
+class ImageAsset(Base):
+    __tablename__='image_assets'
+    id:Mapped[str]=mapped_column(String(36),primary_key=True)
+    filename:Mapped[str]=mapped_column(String(255),nullable=False,index=True)
+    stored_filename:Mapped[str]=mapped_column(String(255),nullable=False,unique=True)
+    content_type:Mapped[str]=mapped_column(String(100),nullable=False)
+    size_bytes:Mapped[int]=mapped_column(Integer,nullable=False)
+    category_id:Mapped[str]=mapped_column(ForeignKey('image_categories.id'),nullable=False,index=True)
+    user_id:Mapped[str]=mapped_column(ForeignKey('users.id'),nullable=False,index=True)
+    created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=lambda:datetime.now(timezone.utc),nullable=False)
+
 class User(Base):
     __tablename__='users'
     id:Mapped[str]=mapped_column(String(36),primary_key=True)

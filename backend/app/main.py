@@ -5,6 +5,7 @@ from .config import settings
 from .database import Base,engine
 from . import models
 from .routers.documents import router
+from .routers.images import router as images_router
 from .auth.router import router as auth_router
 from sqlalchemy import inspect, text
 @asynccontextmanager
@@ -26,4 +27,5 @@ def root(): return {'message':'PDF Vault API is running','docs':'/docs'}
 @app.get(f'{settings.api_prefix}/health')
 def health(): return {'status':'ok','service':settings.app_name}
 app.include_router(router,prefix=settings.api_prefix)
+app.include_router(images_router,prefix=settings.api_prefix)
 app.include_router(auth_router,prefix=settings.api_prefix)
